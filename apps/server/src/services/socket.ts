@@ -224,6 +224,8 @@ const userCurrentGroup = new Map<string, string>();
 
 const redisKey = (groupId: string) => `group:${groupId}:messages`;
 const redisChannel = (groupId: string) => `group:${groupId}`;
+const emailToSocketMap = new Map<string, string>();
+const socketToEmailMap = new Map<string, string>();
 // const onlineUsers = new Map();
 
 
@@ -240,6 +242,7 @@ class SocketService {
 
     public initListeners() {
         const io = this._io;
+
   
         io.on("connection", (socket) => {
             console.log("User connected:", socket.id);
@@ -331,6 +334,42 @@ class SocketService {
              const count = io.sockets.adapter.rooms.get(groupId)?.size || 0;
             // io.to(groupId).emit("group-user-count", count);
             io.to(groupId).emit("group-message", activeData);
+        });
+
+
+        // video call signaling
+        io.on("connection", (socket) => {
+            socket.on("join-room", (data) => {
+                const { roomId,emailId} = data;
+                console.log("Joining room:", roomId, emailId);
+                emailToSocketMap.set(emailId, socket.id);
+                socketToEmailMap.set(socket.id, emailId);
+                socket.join(roomId);
+                socket.emit("joined-room", { roomId });
+                socket.broadcast.to(roomId).emit("user-joined", { roomId, emailId });
+            });
+
+            socket.on("call-user", (data) => {
+                const { emailId,offer} = data;
+                console.log("calluser from:", socket.id, "to:", emailId);
+                const from = socketToEmailMap.get(socket.id);
+                const socketId = emailToSocketMap.get(emailId);
+                socket.to(socketId!).emit("incoming-call", { offer,from });
+            }
+        );
+            socket.on("answer-call", (data) => {
+                const { emailId, answer } = data;
+                console.log("answer-call from:", socket.id, "to:", emailId);
+                const socketId = emailToSocketMap.get(emailId);
+                socket.to(socketId!).emit("call-accepted", { answer });
+            });
+            // Handle disconnection
+            socket.on("hangup", ({ roomId }) => {
+  console.log("User hung up in room:", roomId);
+
+  socket.to(roomId).emit("peer-hangup");
+});
+
         });
     }
 

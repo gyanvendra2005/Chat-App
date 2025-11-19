@@ -7,6 +7,7 @@ import AuthProvider from "@/context/AuthProvider";
 import React from "react";
 import Navbar from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
+import { WebRTCProvider } from "@/context/WebRTC";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -29,15 +30,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <SocketProvider>
-      <AuthProvider>
-        <Navbar/>
+<WebRTCProvider>
+  <SocketProvider>
+    <AuthProvider>
+      <Navbar />
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <Toaster />
         {children}
       </body>
-      </AuthProvider>
-      </SocketProvider>
+    </AuthProvider>
+  </SocketProvider>
+</WebRTCProvider>
+
     </html>
   );
 }

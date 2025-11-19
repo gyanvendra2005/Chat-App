@@ -332,6 +332,8 @@ export default function ChatUI() {
     messagefromserver,
     joinGroupWithHistory,
     activeUsersno,
+    JoinVideoCall,
+    HandleRoomJoined
   } = useSocket();
   const [message, setMessage] = React.useState("");
 
@@ -521,6 +523,8 @@ export default function ChatUI() {
         {/* GROUP LIST */}
         <ScrollArea className="h-[55vh]  bg-[#F1F3F5] rounded-xl">
           {groupsData.map((g, i) => {
+            console.log("New log",g);
+            
             const active = selectedGroup?._id === g._id;
 
             return (
@@ -680,17 +684,7 @@ export default function ChatUI() {
             <Button
               variant="outline"
               onClick={() => {
-                toast.promise<{ name: string }>(
-                  () =>
-                    new Promise((resolve) =>
-                      setTimeout(() => resolve({ name: "Event" }), 2000)
-                    ),
-                  {
-                    loading: "Loading...",
-                    success: (data) => `Service not available yet`,
-                    error: "Error",
-                  }
-                );
+              JoinVideoCall(selectedGroup._id,session.user?.email!);
               }}
             >
               <Video className="h-4 w-4 mr-2" /> Video
