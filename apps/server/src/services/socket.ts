@@ -369,7 +369,6 @@ class SocketService {
 
   socket.to(roomId).emit("peer-hangup");
 });
-
         });
     }
 
